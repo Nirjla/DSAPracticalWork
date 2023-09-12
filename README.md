@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-Initial commit
-=======
+
 # DSAPracticalWork
->>>>>>> 1cdf27523257cb4e471595b2701a01180bf0e26b
+
+### feel free to update the codes as per needs and contribute to the repository. 
