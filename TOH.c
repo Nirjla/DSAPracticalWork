@@ -15,7 +15,7 @@ int main()
   {
       char source = 'A', destination='B', Auxiliary='C';
       int n;
-      printf("Enter the number of disk\t");
+      printf("Enter the number of disk:");
       scanf("%d", &n);
       toh(n, source, Auxiliary,destination );
       return 0;
