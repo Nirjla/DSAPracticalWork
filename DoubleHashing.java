@@ -1,162 +1,147 @@
 import java.util.Scanner;
-import java.math.*;
 
-class HashEntry {
-    String key;
-    int value;
+class DoubleHashingHashTable {
+    private int currentSize, maxSize;
+    private String[] keys;
+    private String[] vals;
 
-    HashEntry(String key, int value) {
-        this.key = key;
-        this.value = value;
-    }
-}
-
-class HashTable {
-    private int TABLE_SIZE;
-    private int size;
-    private HashEntry[] table;
-    private int primeSize;
-
-    public HashTable(int ts) {
-        size = 0;
-        TABLE_SIZE = ts;
-        table = new HashEntry[TABLE_SIZE];
-        for (int i = 0; i < TABLE_SIZE; i++)
-            table[i] = null;
-        primeSize = getPrime();
-    }
-
-    public int getPrime() {
-        for (int i = TABLE_SIZE - 1; i >= 1; i--) {
-            int fact = 0;
-            for (int j = 2; j <= (int) Math.sqrt(i); j++)
-                if (i % j == 0)
-                    fact++;
-            if (fact == 0)
-                return i;
-        }
-        return 3;
-    }
-
-    public int getSize() {
-        return size;
-    }
-
-    public boolean isEmpty() {
-        return size == 0;
+    public DoubleHashingHashTable(int capacity) {
+        currentSize = 0;
+        maxSize = capacity;
+        keys = new String[maxSize];
+        vals = new String[maxSize];
     }
 
     public void makeEmpty() {
-        size = 0;
-        for (int i = 0; i < TABLE_SIZE; i++)
-            table[i] = null;
+        currentSize = 0;
+        keys = new String[maxSize];
+        vals = new String[maxSize];
     }
 
-    public int get(String key) {
-        int hash1 = myhash1(key);
-        int hash2 = myhash2(key);
-        while (table[hash1] != null && !table[hash1].key.equals(key)) {
-            hash1 += hash2;
-            hash1 %= TABLE_SIZE;
-        }
-        return table[hash1].value;
+    public int getSize() {
+        return currentSize;
     }
 
-    public void insert(String key, int value) {
-        if (size == TABLE_SIZE) {
-            System.out.println("Table full");
+    public boolean isFull() {
+        return currentSize == maxSize;
+    }
+
+    public boolean isEmpty() {
+        return currentSize == 0;
+    }
+
+    public boolean contains(String key) {
+        return get(key) != null;
+    }
+
+    private int hash1(String key) {
+        return key.hashCode() % maxSize;
+    }
+
+    private int hash2(String key) {
+        // Implement a second hash function here
+        // For simplicity, we'll use a basic one
+        return 7 - (key.hashCode() % 7); // Adjust the second hash as needed
+    }
+
+    public void insert(String key, String val) {
+        if (isFull()) {
+            System.out.println("Hash table is full. Cannot insert.");
             return;
         }
-        int hash1 = myhash1(key);
-        int hash2 = myhash2(key);
-        while (table[hash1] != null) {
-            hash1 += hash2;
-            hash1 %= TABLE_SIZE;
+
+        int h1 = hash1(key);
+        int h2 = hash2(key);
+        int i = h1;
+        int j = 1; // Counter for probing attempts
+
+        while (keys[i] != null) {
+            // Use double hashing for probing
+            i = (h1 + j * h2) % maxSize;
+            j++;
+
+            if (i == h1) {
+                System.out.println("Hash table is full. Cannot insert.");
+                return;
+            }
         }
-        table[hash1] = new HashEntry(key, value);
-        size++;
+
+        keys[i] = key;
+        vals[i] = val;
+        currentSize++;
     }
 
-    public void remove(String key) {
-        int hash1 = myhash1(key);
-        int hash2 = myhash2(key);
-        while (table[hash1] != null && !table[hash1].key.equals(key)) {
-            hash1 += hash2;
-            hash1 %= TABLE_SIZE;
+    public String get(String key) {
+        int h1 = hash1(key);
+        int h2 = hash2(key);
+        int i = h1;
+        int j = 1; // Counter for probing attempts
+
+        while (keys[i] != null) {
+            if (keys[i].equals(key))
+                return vals[i];
+
+            // Use double hashing for probing
+            i = (h1 + j * h2) % maxSize;
+            j++;
         }
-        table[hash1] = null;
-        size--;
+
+        return null;
     }
 
-    private int myhash1(String x) {
-        int hashVal = x.hashCode();
-        hashVal %= TABLE_SIZE;
-        if (hashVal < 0)
-            hashVal += TABLE_SIZE;
-        return hashVal;
-    }
+    // Other methods like remove, printHashTable, etc.
 
-    private int myhash2(String x) {
-        int hashVal = x.hashCode();
-        hashVal %= TABLE_SIZE;
-        if (hashVal < 0)
-            hashVal += TABLE_SIZE;
-        return primeSize - hashVal % primeSize;
-    }
-
-    public void printHashTable() {
-        System.out.println("\nHash Table");
-        for (int i = 0; i < TABLE_SIZE; i++)
-            if (table[i] != null)
-                System.out.println(table[i].key + " " + table[i].value);
-    }
-}
-
-public class DoubleHashing {
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
-        System.out.println("Hash Table Test\n\n");
+        System.out.println("Double Hashing Hash Table Test\n\n");
         System.out.println("Enter size");
-        HashTable ht = new HashTable(scan.nextInt());
+
+        int capacity = scan.nextInt();
+        DoubleHashingHashTable dht = new DoubleHashingHashTable(capacity);
         char ch;
+
         do {
             System.out.println("\nHash Table Operations\n");
-            System.out.println("1. insert ");
-            System.out.println("2. remove");
-            System.out.println("3. get");
-            System.out.println("4. check empty");
-            System.out.println("5. clear");
-            System.out.println("6. size");
+            System.out.println("1. Insert ");
+            System.out.println("2. Get");
+            System.out.println("3. Clear");
+            System.out.println("4. Size");
+
             int choice = scan.nextInt();
+
             switch (choice) {
                 case 1:
                     System.out.println("Enter key and value");
-                    ht.insert(scan.next(), scan.nextInt());
+                    dht.insert(scan.next(), scan.next());
                     break;
+
                 case 2:
                     System.out.println("Enter key");
-                    ht.remove(scan.next());
+                    String result = dht.get(scan.next());
+                    if (result != null) {
+                        System.out.println("Value = " + result);
+                    } else {
+                        System.out.println("Key not found.");
+                    }
                     break;
+
                 case 3:
-                    System.out.println("Enter key");
-                    System.out.println("Value = " + ht.get(scan.next()));
-                    break;
-                case 4:
-                    System.out.println("Empty Status " + ht.isEmpty());
-                    break;
-                case 5:
-                    ht.makeEmpty();
+                    dht.makeEmpty();
                     System.out.println("Hash Table Cleared\n");
                     break;
-                case 6:
-                    System.out.println("Size = " + ht.getSize());
+
+                case 4:
+                    System.out.println("Size = " + dht.getSize());
                     break;
+
                 default:
-                    System.out.println("Wrong Entry\n ");
+                    System.out.println("Wrong Entry \n ");
                     break;
             }
-            ht.printHashTable();
-            System.out.println("\nDo you want to continue (Type y or n)\n");
+
+            // dht.printHashTable(); // You can add this method to print the hash table
+
+            System.out.println("\nDo you want to continue (Type y or n) \n");
             ch = scan.next().charAt(0);
         } while (ch == 'Y' || ch == 'y');
     }
